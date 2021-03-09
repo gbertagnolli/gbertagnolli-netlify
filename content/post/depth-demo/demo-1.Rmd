@@ -1,0 +1,502 @@
+---
+  title: "Network depth: a demo"
+  author: "Giulia Bertagnolli"
+  date: 2019-04-16
+  readingTime: false
+  categories: ["R"]
+  tags: ["networks", "statistical data depths", "centralities"]
+---
+
+
+```{r load-ps, echo=FALSE, warning=FALSE, include=FALSE}
+rm(list = ls())
+library(knitr)
+knitr::opts_chunk$set(dev = c('png', 'pdf'),
+                      fig.path = "./images/")
+library(latex2exp)
+library(igraph)
+library(sigmajs)
+library(htmltools)
+library(colorRamps)
+library(RColorBrewer)
+library(corrplot)
+library(SuppDists)
+library(tidyverse)
+library(plotly)
+library(smacof)
+library(fontawesome)
+theme_set(theme_minimal())
+igraph_options(vertex.frame.color = "white", vertex.frame.size = 3,
+               edge.arrow.size = .1)
+depth_breaks <- c(seq(0, 1/2, .008), 0.5, 1)
+ptd_pal <- colorRampPalette(brewer.pal(n = 9, name = "GnBu"))(31)[2:31]
+cor_cols <- colorRampPalette(brewer.pal(n = 11, name = "PuOr"))(100)
+#
+overwrite <- F
+```
+
+This is a small demo related to our (Giulia Bertagnolli, [Claudio Agostinelli](http://www.science.unitn.it/~claudio/about/), [Manlio De Domenico](https://comunelab.fbk.eu/manlio/index.php)) recent work, _Network depth: identifying median and contours in complex networks_, [Journal of Complex Networks 8 (4). doi: 10.1093/comnet/cnz041](https://doi.org/10.1093/comnet/cnz041). [ 	arXiv:1904.05060](http://arxiv.org/abs/1904.05060).
+
+## Network Scientists 2010
+The [Network Scientists 2010 network](http://www.mapequation.org/assets/publications/mapequationtutorial.pdf) -- [download data](http://mapequation.org/downloads/netscicoauthor2010.net) -- is a co-authorship network with $N=552$ nodes.
+
+```{r load-data, echo=3, warning=FALSE, include=FALSE}
+load("./sp_ptd.RData")
+load("./Dt_ptd.RData")
+nodes <- read_table("./netscience2010.net", skip = 1, col_names=F, n_max = 552)
+nodes %>% separate(X1, into = c("id", "label"), sep = " ", extra = "merge") -> nodes
+edges <- read_delim("./netscience2010.net", skip = 554,
+                    col_names = c("u", "v", "weight"), delim = " ")
+g <- graph_from_data_frame(d = edges, directed = F, vertices = nodes)
+degC <- degree(g)
+net_cols <- read_csv("./netsci2010cols.csv")
+node_cols <- net_cols$node_cols2
+names(node_cols) <- net_cols$name
+nodes$color <- colorRampPalette(brewer.pal("Accent", n = 8))(nrow(nodes))
+nodes$size <- cut(degC, breaks = quantile(degC, probs = c(1, .99, .975, .95, .9, .75, .5, .25, 0)),
+            include.lowest = TRUE, labels = 1:8)
+edges <- read_delim("./netscience2010.net", skip = 554,
+col_names = c("source", "target", "weight"), delim = " ") %>%
+mutate("source" = as.character(source), "target" = as.character(target))
+edges %>% add_column("id" = 1:nrow(edges), .before = 1) -> edges
+# g_layout <- igraph::layout_with_fr()
+layout <- sg_get_layout(nodes, edges, layout = igraph::layout_on_sphere)
+nodes$x <- layout$x
+nodes$y <- layout$y
+layout <- sg_get_layout(nodes, edges, layout = igraph::layout_nicely)
+nodes$to_x <- layout$x
+nodes$to_y <- layout$y
+```
+
+The node size in the following plot depends on degree (quantiles).
+
+```{r sigmajs-graph, echo=FALSE}
+sg <- sigmajs(height = "800px", width = "90%") %>%
+        sg_nodes(nodes[, -3], id = id, label = label, size = size, x = to_x, y = to_y) %>%
+        sg_edges(edges[, -4], id, source, target) %>%
+        sg_drag_nodes() %>% # allows user to drag nodes
+        sg_neighbours() %>% # show node neighbours on node click
+        # sg_animate(mapping = list(x = "to_x", y = "to_y"), delay = 10) %>%
+        sg_settings(defaultNodeColor = "#2DBE79")
+sg
+```
+
+```{r depth-patterns-slider, echo=FALSE, warning=FALSE, eval=FALSE, include=FALSE}
+v_cols <- colorRampPalette(brewer.pal("Accent", n = 8))(552)
+names(v_cols) <- names(node_cols)
+df_list <- lapply(seq(5, 15, 2), function(p) {
+             df <- as.data.frame(do.call(cbind, Dt_ptd$ptds[[which(Dt_ptd$ps == p)]]))
+             colnames(df) <- Dt_ptd$taus
+             df <- df %>%
+                     as_tibble() %>%
+                     add_column(node = rownames(df)) %>%
+                     gather(tau, value, -node, factor_key = T) %>%
+                     mutate(
+                       tau = as.integer(tau)
+                     ) %>%
+                     filter(tau > 1)
+             return(list(visible = FALSE, "p" = p, data = df))
+             })
+df_list[[1]]$visible <- TRUE
+# create steps and plot all traces
+dims <- list()
+pl <- plot_ly()
+for (i in 1:3) {
+  df <- df_list[[i]]$data
+  my_pal <- v_cols
+  deeps <- df %>% group_by(tau) %>%
+                  filter(value >= quantile(value, probs = .99))
+  deeps <- unique(deeps$node)
+  my_pal[!(names(my_pal) %in% deeps)] <- "lightgray"
+  pl <- add_lines(pl, data = df,  # [!(df$node %in% deeps), ]
+                  x = ~tau, y = ~value, visible = df_list[[i]]$visible,
+                  color = ~node, colors = my_pal,
+                  type = "scatter", mode = "lines",
+                  name = ~p, showlegend = FALSE, hoverinfo = "text",
+                  text = ~paste(node, " | depth: ", round(value, 3), sep = "")) %>%
+        # add_lines(data = df[df$node %in% deeps, ],
+        #           x = ~tau, y = ~value, visible = df_list[[i]]$visible,
+        #           color = ~node, colors = my_pal,
+        #           type = "scatter", mode = "lines",
+        #           name = ~p, showlegend = TRUE, hoverinfo = "text",
+        #           text = ~paste(node, " | depth: ", round(value, 3), sep = "")) %>%
+        layout(title = "Depth Patterns Plot in diffusion embedding",
+               xaxis = list(title = "t, diffusion time"),
+               yaxis = list(title = "PTD(D_t, t, p)"),
+               margin = margin, autosize = TRUE, showlegend = FALSE)
+
+  dim <- list(args = list("visible", rep(FALSE, length(df_list))),
+              method = "restyle", label = df_list[[i]]$p)
+  dim$args[[2]][i] = TRUE
+  dims[[i]] = dim
+}
+# add slider control to plot
+pl <- pl %>%
+  layout(sliders = list(list(active = 1,
+                             currentvalue = list(prefix = "Dimension: "),
+                             steps = dims)))
+pl
+```
+
+### Depth Patterns
+
+The following plot(ly) shows depth patterns in three diffusion embeddings:
+
+* $p = 5, 10, 15$, the embedding dimension can be controlled through the slider on the bottom of the figure;
+* $t$, diffusion time is on the x-axis
+* $PTD(D_t, t, p)$, depth values on the y-axis
+
+Each nodes corresponds to a line.
+
+**Explore the plot** through plotly sliders and interaction tools!
+
+```{r depth-pattherns-data, echo=FALSE}
+data <- as.data.frame(do.call(cbind, Dt_ptd$ptds[[which(Dt_ptd$ps == 5)]]))
+colnames(data) <- Dt_ptd$taus
+data <- data %>%
+        as_tibble() %>%
+        add_column(node = rownames(data)) %>%
+        gather(tau, value, -node, factor_key = T) %>%
+        mutate(
+          tau = as.integer(tau)
+        ) %>%
+        filter(tau > 1)
+data$dim <- 5
+df <- as.data.frame(do.call(cbind, Dt_ptd$ptds[[which(Dt_ptd$ps == 10)]]))
+colnames(df) <- Dt_ptd$taus
+df <- df %>%
+        as_tibble() %>%
+        add_column(node = rownames(df)) %>%
+        gather(tau, value, -node, factor_key = T) %>%
+        mutate(
+          tau = as.integer(tau)
+        ) %>%
+        filter(tau > 1)
+df$dim <- 10
+data <- rbind(data, df)
+df <- as.data.frame(do.call(cbind, Dt_ptd$ptds[[which(Dt_ptd$ps == 15)]]))
+colnames(df) <- Dt_ptd$taus
+df <- df %>%
+        as_tibble() %>%
+        add_column(node = rownames(df)) %>%
+        gather(tau, value, -node, factor_key = T) %>%
+        mutate(
+          tau = as.integer(tau)
+        ) %>%
+        filter(tau > 1)
+df$dim <- 15
+data <- rbind(data, df)
+# split_col <- data %>%
+#           group_by(dim) %>% mutate("top" = as.integer(value >= quantile(value, .99)) + 1)
+# data$top <- split_col$top
+# data %>% arrange(desc(value) & tau & dim) %>%
+```
+
+```{r depth-pattern-animate, echo=FALSE}
+p <- data %>%
+  plot_ly(x = ~tau, y = ~value, color = ~node, frame = ~dim, alpha = .9,
+          colors = node_cols, text = ~paste(node, " | ", round(value, 3), sep = ""),
+          hoverinfo = "text", type = 'scatter', mode = 'lines+markers') %>%
+    layout(xaxis = list(title = "t, diffusion time"), yaxis = list(title = "depth"),
+           title = "Depth of nodes in Network Scientists 2010 w.r.t. Diffusion distance",
+           showlegend = FALSE ) %>%
+    animation_opts( 1000, redraw = FALSE) %>%
+    animation_slider(currentvalue = list(
+      prefix = "Embedding dimension ",
+      font = list(size = 20, color = "gray95"),
+      xanchor = "left"))
+p
+# # saveWidget(p, "netsci-depth-patterns.html", selfcontained = F, libdir = "lib")
+# htmltools::tags$iframe(
+#   src = "netsci-depth-patterns.html",
+#   scrolling = "no",
+#   seamless = "seamless",
+#   frameBorder = "0",
+#   style = "width: 100%;height: 800px;max-height: 900px;min-height: 300px;"
+# )
+```
+
+## Diffusion Distance with $\tau = 10$
+
+The Network Scientists 2010 network. Node colour and size depend on the Projected Tukey Depth w.r.t. diffusion distance, $PTD(D_t, t, p)$.
+Plots for $\tau = 10$ and different values of $p$, the dimension of the embedding space.
+
+Pressing the animation button `deeps` will scale the nodes size based on the depth region (i.e. depth quantile interval) they belong to. We consider the following percentiles: 99%, 97.5%, 95%, 90%, 75%, 50%, 25% and >25%. To go back, simply refresh the page!
+
+### Embedding in $\mathbb{R}^5$
+
+$PTD(D_t, t = 10, p = 5)$
+
+```{r network-depth, echo=FALSE}
+depth <- data %>% filter((dim == 5) & (tau == 10)) %>% select(value)
+if (n_distinct(depth) > 1) {
+  depth <- (depth - min(depth)) / (max(depth) - min(depth))
+}
+# n_depth <- n_distinct(depth)
+# nodes$to_size <- ceiling(5 + 5 * depth)
+# nodes$to_color <- colorRampPalette(brewer.pal(n = 8, "GnBu"))(n_depth + 2)[-c(1, 2)][as.factor(depth)]
+depth %>% group_by(quantiles = cut(value, breaks = quantile(value, probs = c(1, .99, .975, .95, .9, .75, .5, .25, 0)),
+            include.lowest = TRUE, labels = 1:8)) -> depth
+nodes$to_size <- depth$quantiles
+nodes$to_color <- colorRampPalette(brewer.pal(n = 8, "GnBu"))(10)[-c(1, 2)][depth$quantiles]
+sigmajs(height = "800px", width = "90%") %>%
+  sg_nodes(nodes, id, label, x = to_x, y = to_y, size = size, color = to_color, to_size) %>%
+  sg_edges(edges[, -4], id, source, target) %>%
+  sg_animate(mapping = list(size = "to_size"), delay = 0) %>%
+  sg_button("animate", "deepest", class = "btn btn-warning",
+            tag = tags$h3, position = "top") %>%
+  sg_drag_nodes() %>% # allows user to drag nodes
+  sg_neighbours()
+```
+
+### Embedding in $\mathbb{R}^{10}$
+
+$PTD(D_t, t = 10, p = 10)$
+
+```{r network-depth-10, echo=FALSE}
+depth <- data %>% filter((dim == 10) & (tau == 10)) %>% select(value)
+if (n_distinct(depth) > 1) {
+  depth <- (depth - min(depth)) / (max(depth) - min(depth))
+}
+# n_depth <- n_distinct(depth)
+# nodes$to_size <- ceiling(5 + 5 * depth)
+# nodes$to_color <- colorRampPalette(brewer.pal(n = 8, "GnBu"))(n_depth + 2)[-c(1, 2)][as.factor(depth)]
+depth %>% group_by(quantiles = cut(value, breaks = quantile(value, probs = c(1, .99, .975, .95, .9, .75, .5, .25, 0)),
+            include.lowest = TRUE, labels = 1:8)) -> depth
+nodes$to_size <- depth$quantiles
+nodes$to_color <- colorRampPalette(brewer.pal(n = 8, "GnBu"))(10)[-c(1, 2)][depth$quantiles]
+sigmajs(height = "800px", width = "90%") %>%
+  sg_nodes(nodes, id, label, x = to_x, y = to_y, size = size, color = to_color, to_size) %>%
+  sg_edges(edges[, -4], id, source, target) %>%
+  sg_animate(mapping = list(size = "to_size"), delay = 0) %>%
+  sg_button("animate", "deepest", class = "btn btn-warning",
+            tag = tags$h3, position = "top") %>%
+  sg_drag_nodes() %>% # allows user to drag nodes
+  sg_neighbours()
+```
+
+### Embedding in $\mathbb{R}^{15}$
+
+$PTD(D_t, t = 10, p = 15)$
+
+```{r network-depth-16, echo=FALSE}
+depth <- data %>% filter((dim == 15) & (tau == 10)) %>% select(value)
+if (n_distinct(depth) > 1) {
+  depth <- (depth - min(depth)) / (max(depth) - min(depth))
+}
+# n_depth <- n_distinct(depth)
+# nodes$to_size <- ceiling(5 + 5 * depth)
+# nodes$to_color <- colorRampPalette(brewer.pal(n = 8, "GnBu"))(n_depth + 2)[-c(1, 2)][as.factor(depth)]
+depth %>% group_by(quantiles = cut(value, breaks = quantile(value, probs = c(1, .99, .975, .95, .9, .75, .5, .25, 0)),
+            include.lowest = TRUE, labels = 1:8)) -> depth
+nodes$to_size <- depth$quantiles
+nodes$to_color <- colorRampPalette(brewer.pal(n = 8, "GnBu"))(10)[-c(1, 2)][depth$quantiles]
+sigmajs(height = "800px", width = "90%") %>%
+  sg_nodes(nodes, id, label, x = to_x, y = to_y, size = size, color = to_color, to_size) %>%
+  sg_edges(edges[, -4], id, source, target) %>%
+  sg_animate(mapping = list(size = "to_size"), delay = 0) %>%
+  sg_button("animate", "deepest", class = "btn btn-warning",
+            tag = tags$h3, position = "top") %>%
+  sg_drag_nodes() %>% # allows user to drag nodes
+  sg_neighbours()
+```
+
+## Words of Complex Networks
+
+```{r load-data-complex, echo=FALSE, include=FALSE, warning=FALSE}
+edges_cosine_sim <- read_csv2("./complex_cossim_nocut.edges") %>%
+  mutate("weight" = as.numeric(weight))
+qt_thres <- edges_cosine_sim %>% summarise("q98" = quantile(as.numeric(weight), prob = .98))
+conet_cosine_sim <- graph_from_data_frame(d = edges_cosine_sim[edges_cosine_sim$weight >= qt_thres$q98, ], directed = F)
+# conet_cosine_sim <- induced_subgraph(conet_cosine_sim, vids = V(conet_cosine_sim)[components(conet_cosine_sim)$membership == 1])
+nodes_co <- igraph::as_data_frame(x = conet_cosine_sim, what = "vertices") %>%
+              rownames_to_column("id") %>%
+              rename(label = name) %>% as_tibble()
+nodes_co$size <- 2 + degree(conet_cosine_sim, normalized = TRUE) * 10
+nodes_co$color <- colorRampPalette(brewer.pal(n = 9, "PuOr"))(60)[as.factor(betweenness(conet_cosine_sim, normalized = TRUE))]
+#
+edges_co <- igraph::as_data_frame(x = conet_cosine_sim, what = "edges") %>%
+              rownames_to_column("id") %>%
+              rename(source = from, target = to) %>%
+              select(- weight) %>%
+              as_tibble()
+# initial coordinates
+layout <- sg_get_layout(nodes_co, edges_co, layout = igraph::layout_on_sphere)
+nodes_co$x <- layout$x
+nodes_co$y <- layout$y
+layout <- sg_get_layout(nodes_co, edges_co, layout = igraph::layout_nicely)
+nodes_co$to_x <- layout$x
+nodes_co$to_y <- layout$y
+```
+
+```{r read-cos-sim-nc, echo=FALSE, include=FALSE, warning=FALSE, fig.cap="Scree-plot: stress-1 for each embedding."}
+# use complete similarity matrix for depth computation
+g <- graph_from_data_frame(d = edges_cosine_sim, directed = F)
+cosine_sim_matrix <- as_adjacency_matrix(g, attr = "weight") # get the similarity matrix as weighted adjacency m.
+cosine_dist_matrix <- sim2diss(cosine_sim_matrix, method = 1, to.dist = T) # from cosine similarity to cosine distance
+conet_cossim_emb <- lapply(1:20, function(p) {
+  mds(cosine_dist_matrix, ndim = p)
+}) # embedding from 1 to 20
+# stress plot
+tibble(
+  p = 1:20,
+  stress = sapply(conet_cossim_emb, function(emb) emb$stress)
+) %>% ggplot(aes(x = p, y = stress)) +
+geom_line() +
+geom_point()
+#
+conet_cossim_ptd <- lapply(conet_cossim_emb, function(emb) {
+  networkDepth::PTDSpaceC(emb$conf)
+})
+names(conet_cossim_ptd) <- 1:20
+```
+
+A corpus has been built from all arxiv abstracts concerning complex network and then, through word2vec, concepts have been retrieved.
+We can compute similarities and distances on these $N=`r nrow(nodes_co)`$ words, thanks to which we can embed words in space.
+
+To visualise words and relations among them, we build an undirected weighted network (thresholding the cosine similarity matrix on the 98-percentile).
+In the following plot, the network structure reflects cosine similarity, node size depends on degree and node colour (`brewer.pal("PuOr")`) on betweenness centrality.
+
+
+```{r complex-plot, echo=FALSE}
+sigmajs(height = "800px", width = "90%") %>%
+  sg_nodes(nodes_co, id = id, label = label, size = size, color = color, x = to_x, y = to_y) %>%
+  sg_edges(edges_co, id, source, target) %>%
+  sg_drag_nodes() %>% # allows user to drag nodes
+  sg_neighbours() %>% # show node neighbours on node click
+  # sg_animate(mapping = list(x = "to_x", y = "to_y"), delay = 9000) %>%
+  sg_settings(drawLabels = TRUE, animationsTime = 2000) %>%
+  sg_export_svg(file = "conet.svg") %>%
+  sg_button(
+    "export_svg", # event to trigger
+    "save",
+    class = "btn btn-default",
+    position = "bottom",
+    tag = tags$a,
+    fontawesome::fa("download", fill = "white")
+  )
+```
+
+Since the this network is built upon a thresholded similarity matrix, we work directly on the matrix (without thresholds) to get distances/dissimilarities and to embed this _word network_ into space.
+
+
+```{r conet-depth-patterns, echo=FALSE}
+df <- do.call(cbind, conet_cossim_ptd[c(1:15)])
+df <- df %>%
+  as_tibble() %>%
+  add_column("node" = rownames(df), .before = 1) %>%
+  gather(dim, value, -node, factor_key = T) %>%
+        mutate(
+          dim = as.integer(dim)
+        )
+#
+p1 <- df %>%
+   plot_ly(x = ~dim, y = ~value, color = ~node, alpha = .9,
+           colors = colorRampPalette(brewer.pal(n = 8, "Accent"))(131),
+           text = ~paste(node, " | ", round(value, 3), sep = ""),
+           hoverinfo = "text", type = 'scatter', mode = 'lines+markers') %>%
+     layout(xaxis = list(title = "p, embedding dimension"), yaxis = list(title = "depth"),
+            title = "Depth of Words in Cosine Similarity Embedding",
+            showlegend = FALSE )
+p1
+# saveWidget(p1, "conet-depth-patterns.html", selfcontained = F, libdir = "lib")
+# htmltools::tags$iframe(
+#   src = "/demo/conet-depth-patterns.html",
+#   scrolling = "no",
+#   seamless = "seamless",
+#   frameBorder = "0",
+#   style = "width: 100%;height: 800px;max-height: 900px;min-height: 300px;"
+# )
+```
+
+For $p\geq 8$ the depth space reduces to two depth values and in $\mathbb{R}^p$ with dimension higher than 10 all the words lie on a convex shell, having all the same depth w.r.t. the data cloud.
+For $p \geq 3$ the depth ranking is "stable", in that the depth induced order between points remains the same but for nodes in outer contours.
+
+Both $p = 3, 4$ represent good choices since, they are the smallest dimensions displaying the stable depth pattern for top ranking words.
+
+The median word is `r names(which.max(conet_cossim_ptd[[3]]))`.
+
+#### Embedding in $\mathbb{R}^{3}$
+
+```{r conet-depth-3, echo=FALSE}
+depth <- df %>%
+  filter((node %in% nodes_co$label) & (dim == 3)) %>%
+  select(node, value) %>% rename(label = node)
+depth %>% group_by(to_size = cut(value, breaks = quantile(value, probs = c(1, .995, .99, .975, .95, .9, .75, .5, 0)),
+            include.lowest = TRUE, labels = 1:8)) %>%
+            select(-value) %>% ungroup -> depth
+size_co <- nodes_co %>%
+             left_join(y = depth, by = "label") %>%
+             select(label, to_size) %>%
+             column_to_rownames("label")
+size_co[is.na(size_co)] <- 1
+nodes_co$to_size <- 2 + as.numeric(size_co$to_size)
+nodes_co$to_color <- brewer.pal(n = 8, "GnBu")[size_co$to_size]
+sigmajs(height = "800px", width = "90%") %>%
+  sg_nodes(nodes_co, id, label, size = size, x = to_x, y = to_y, color = color, to_color, to_size) %>%
+  sg_edges(edges_co, id = id, source = source, target = target) %>%
+  sg_drag_nodes() %>% # allows user to drag nodes
+  sg_neighbours() %>%
+  # sg_export_svg(file = "conet-1.svg") %>%
+  # sg_button(
+  #   "export_svg", # event to trigger
+  #   "save",
+  #   class = "btn btn-default",
+  #   tag = tags$a,
+  #   position = "bottom",
+  #   fontawesome::fa("download")
+  # ) %>%
+  sg_animate(mapping = list(size = "to_size", color = "to_color"), delay = 0) %>%
+  sg_button("animate", "deepest", class = "btn btn-warning",
+    tag = tags$h3, position = "top")
+```
+
+#### Embedding in $\mathbb{R}^{4}$
+
+```{r conet-depth-4, echo=FALSE}
+depth <- df %>%
+  filter((node %in% nodes_co$label) & (dim == 4)) %>%
+  select(node, value) %>% rename(label = node)
+depth %>% group_by(to_size = cut(value, breaks = quantile(value, probs = c(1, .995, .99, .975, .95, .9, .75, .5)),
+            include.lowest = TRUE, labels = 1:7)) %>%
+            select(-value) %>% ungroup -> depth
+size_co <- nodes_co %>% select(-c(to_size, to_color)) %>%
+             left_join(y = depth, by = "label") %>%
+             select(label, to_size) %>%
+             column_to_rownames("label")
+size_co[is.na(size_co)] <- 1
+nodes_co$to_size <- 2 + as.numeric(size_co$to_size)
+nodes_co$to_color <- brewer.pal(n = 8, "GnBu")[size_co$to_size]
+sigmajs(height = "800px", width = "90%") %>%
+  sg_nodes(nodes_co, id, label, size = size, x = to_x, y = to_y, color = color, to_color, to_size) %>%
+  sg_edges(edges_co, id = id, source = source, target = target) %>%
+  sg_drag_nodes() %>% # allows user to drag nodes
+  sg_neighbours() %>%
+  sg_animate(mapping = list(size = "to_size", color = "to_color"), delay = 0) %>%
+  # sg_export_svg(file = "conet-2.svg") %>%
+  # sg_button(
+  #   "export_svg", # event to trigger
+  #   "save",
+  #   class = "btn btn-default",
+  #   tag = tags$a,
+  #   position = "bottom",
+  #   fontawesome::fa("download")
+  # ) %>%
+  sg_button(c("animate"), "deepest", class = "btn btn-warning",
+    tag = tags$h3, position = "top")
+```
+
+```{r echo=FALSE, eval=FALSE}
+svg(filename = "comnet-all.svg",
+    width = 12,
+    height = 12,
+    pointsize = 12)
+plot(conet_cosine_sim, layout = layout_nicely, vertex.size = 8, vertex.color = brewer.pal(n = 4, "PuOr")[3])
+dev.off()
+```
+
+### References
+
+* _Network depth: identifying median and contours in complex networks_ -- G. Bertagnolli, [C. Agostinelli](http://www.science.unitn.it/~claudio/about/), [M. De Domenico](https://comunelab.fbk.eu/manlio/index.php)-- [arXiv:1904.05060](http://arxiv.org/abs/1904.05060).
+* D. Edler and M. Rosvall, The MapEquation software package, available online at [http://www.mapequation.org](http://www.mapequation.org) and [related tutorial](http://www.mapequation.org/assets/publications/mapequationtutorial.pdf) -- [data for Net. Sci. 2010](http://mapequation.org/downloads/netscicoauthor2010.net)
+* `sigmajs for R` [sigmajs.john-coene.com](http://sigmajs.john-coene.com/index.html) for interactive network plots.
