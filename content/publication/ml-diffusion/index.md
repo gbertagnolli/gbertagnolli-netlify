@@ -13,7 +13,7 @@ publication_short: ""
 publication_types:
 - "3"
 publishDate: "2020-06-23T00:00:00Z"
-slides: example
+# slides: example
 # summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus
 #   ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum.
 # tags:
@@ -23,5 +23,6 @@ title: Diffusion Geometry of Multiplex and Interdependent Systems
 url_pdf: http://arxiv.org/pdf/2006.13032
 # url_project: ""
 # url_slides: ""
+url_poster: "https://www.canva.com/design/DAEO_1_5sGM/aZzHW-UIt18kxOW6Am-zzQ/view?utm_campaign=designshare&utm_source=sharebutton"
 # url_video: '#'
 ---
