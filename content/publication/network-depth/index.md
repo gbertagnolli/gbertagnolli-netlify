@@ -12,13 +12,18 @@ featured: true
 #   focal_point: ""
 #   preview_only: false
 # projects: []
+tags:
+  - networks
+  - statistical data depths
+  - centralities
+  - diffusion distance
 publication: '_Journal of Complex Networks_, Volume 8, Issue 4'
 publication_short: ""
 publication_types:
 - "2"
 # publishDate: "2019-10-01T00:00:00Z"
 title: "Network depth: identifying median and contours in complex networks"
-# url_code: ""
-url_pdf: "https://arxiv.org/pdf/1904.05060"
-# url_project: ""
+links:
+  - name: Pdf
+    url: https://arxiv.org/pdf/1904.05060
 ---

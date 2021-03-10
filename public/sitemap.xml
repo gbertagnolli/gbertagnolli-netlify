@@ -2,24 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/courses/example/python/</loc>
-    <lastmod>2021-01-01T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/courses/example/visualization/</loc>
-    <lastmod>2021-01-01T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/courses/example/stats/</loc>
-    <lastmod>2021-01-01T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/talk/example-talk/</loc>
-    <lastmod>2030-06-01T13:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/</loc>
-    <lastmod>2030-06-01T13:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/event/</loc>
-    <lastmod>2030-06-01T13:00:00+00:00</lastmod>
-  </url><url>
     <loc>/publication-type/1/</loc>
     <lastmod>2021-05-01T00:00:00+00:00</lastmod>
   </url><url>
@@ -35,6 +17,18 @@
     <loc>/tag/complex-systems/</loc>
     <lastmod>2021-05-01T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>/tag/diffusion-distance/</loc>
+    <lastmod>2021-05-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/tag/efficiency/</loc>
+    <lastmod>2021-05-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/</loc>
+    <lastmod>2021-05-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/tag/networks/</loc>
+    <lastmod>2021-05-01T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>/publication_types/</loc>
     <lastmod>2021-05-01T00:00:00+00:00</lastmod>
   </url><url>
@@ -43,12 +37,6 @@
   </url><url>
     <loc>/tags/</loc>
     <lastmod>2021-05-01T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/courses/</loc>
-    <lastmod>2021-01-24T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/courses/example/</loc>
-    <lastmod>2021-01-24T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/publication-type/2/</loc>
     <lastmod>2020-10-01T00:00:00+00:00</lastmod>
@@ -77,8 +65,20 @@
     <loc>/publication-type/3/</loc>
     <lastmod>2020-06-23T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>/tag/diffusion/</loc>
+    <lastmod>2020-06-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/tag/diffusion-geometry/</loc>
+    <lastmod>2020-06-23T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>/publication/ml-diffusion/</loc>
     <lastmod>2020-06-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/tag/multilayer-networks/</loc>
+    <lastmod>2020-06-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/tag/network-flows/</loc>
+    <lastmod>2020-03-25T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/publication/efficiency/</loc>
     <lastmod>2020-03-25T00:00:00+00:00</lastmod>
@@ -86,10 +86,16 @@
     <loc>/author/riccardo-gallotti/</loc>
     <lastmod>2020-03-25T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>/tag/centralities/</loc>
+    <lastmod>2019-10-01T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>/author/claudio-agostinelli/</loc>
     <lastmod>2019-10-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/publication/network-depth/</loc>
+    <lastmod>2019-10-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>/tag/statistical-data-depths/</loc>
     <lastmod>2019-10-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/publication/intsegration/</loc>
@@ -116,26 +122,11 @@
     <loc>/post/2019-08-23-network-science/</loc>
     <lastmod>2019-08-23T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>/tag/centralities/</loc>
-    <lastmod>2019-04-16T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>/post/depth-demo/demo-1/</loc>
-    <lastmod>2019-04-16T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/tag/networks/</loc>
     <lastmod>2019-04-16T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/category/r/</loc>
     <lastmod>2019-04-16T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/tag/statistical-data-depths/</loc>
-    <lastmod>2019-04-16T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/slides/</loc>
-    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/slides/example/</loc>
-    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/post/2018-11-19-nets-seminars/</loc>
     <lastmod>2018-11-18T00:00:00+00:00</lastmod>
@@ -148,21 +139,6 @@
   </url><url>
     <loc>/category/studies/</loc>
     <lastmod>2018-10-24T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/tag/deep-learning/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/tag/demo/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/project/external-project/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/project/internal-project/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>/project/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
   </url><url>
     <loc>/admin/</loc>
   </url>

@@ -7,18 +7,17 @@ authors:
 date: "2019-10-01T00:00:00Z"
 doi: "10.1140/epjds/s13688-020-00258-3"
 featured: false
-# image:
-#   caption: 'Image credit: [**Unsplash**](https://unsplash.com/photos/jdD8gXaTZsc)'
-#   focal_point: ""
-#   preview_only: false
-# projects: []
+tags:
+- networks
+- efficiency
+- network flows
 publication: '_EPJ Data Science_, Volume 10, 3'
 publication_short: "EPJ Data Sci."
 publication_types:
 - "2"
 publishDate: "2021-01-15T00:00:00Z"
 title: "Unraveling the hidden organisation of urban systems and their mobility flows"
-# url_code: ""
-url_pdf: "https://arxiv.org/pdf/1904.05060"
-# url_project: ""
+links:
+  - name: Pdf
+    url: https://arxiv.org/pdf/1904.05060
 ---
