@@ -20,7 +20,7 @@ publishDate: "2020-06-23T00:00:00Z"
 # - Source Themes
 title: Diffusion Geometry of Multiplex and Interdependent Systems
 # url_code: '#'
-url_pdf: http://arxiv.org/pdf/2006.13032
+url_pdf: "http://arxiv.org/pdf/2006.13032"
 # url_project: ""
 # url_slides: ""
 url_poster: "https://www.canva.com/design/DAEO_1_5sGM/aZzHW-UIt18kxOW6Am-zzQ/view?utm_campaign=designshare&utm_source=sharebutton"

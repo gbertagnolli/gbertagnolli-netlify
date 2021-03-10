@@ -19,6 +19,6 @@ publication_types:
 publishDate: "2021-01-15T00:00:00Z"
 title: "Unraveling the hidden organisation of urban systems and their mobility flows"
 # url_code: ""
-url_pdf: https://arxiv.org/pdf/1904.05060
+url_pdf: "https://arxiv.org/pdf/1904.05060"
 # url_project: ""
 ---

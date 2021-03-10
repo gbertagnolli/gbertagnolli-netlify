@@ -20,8 +20,8 @@ publishDate: "2020-03-25T00:00:00Z"
 # - Source Themes
 title: "Quantifying efficient information exchange in real network flows"
 # url_code: '#'
-url_pdf: http://arxiv.org/pdf/2003.11374
+url_pdf: "http://arxiv.org/pdf/2003.11374"
 # url_project: ""
-# url_slides: ""
+url_slides: "https://www.canva.com/design/DAEQB1uJGrY/0Noo7Xh_tKhhYFkfHrIjxg/view?utm_campaign=designshare&utm_source=sharebutton"
 # url_video: '#'
 ---

@@ -19,6 +19,6 @@ publication_types:
 # publishDate: "2019-10-01T00:00:00Z"
 title: "Network depth: identifying median and contours in complex networks"
 # url_code: ""
-url_pdf: https://arxiv.org/pdf/1904.05060
+url_pdf: "https://arxiv.org/pdf/1904.05060"
 # url_project: ""
 ---

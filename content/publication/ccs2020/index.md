@@ -13,17 +13,17 @@ publication: e-book of abstracts of the Conference on Complex Systems 2020 (CCS2
 publication_short: In *CCS2020*
 publication_types:
 - "1"
-publishDate: "2021-05-01T00:00:00Z"
+publishDate: "2021-01-05T00:00:00Z"
 summary: Book of Abstracts of the Conference on Complex Systems 2020
 tags:
 - complex systems
 title: "CCS2020 - Conference on Complex System 2020 - Book of Abstracts"
 # url_code: '#'
 # url_dataset: '#'
-url_pdf: https://zenodo.org/record/4419178/files/ccs2020BoAFinal.pdf?download=1
-url_poster: 'https://www.canva.com/design/DAEO_1_5sGM/aZzHW-UIt18kxOW6Am-zzQ/view?utm_campaign=designshare&utm_source=sharebutton'
+url_pdf: "https://zenodo.org/record/4419178/files/ccs2020BoAFinal.pdf?download=1"
+url_poster: "https://www.canva.com/design/DAEO_1_5sGM/aZzHW-UIt18kxOW6Am-zzQ/view?utm_campaign=designshare&utm_source=sharebutton"
 # url_project: ""
-url_slides: https://www.canva.com/design/DAEQB1uJGrY/0Noo7Xh_tKhhYFkfHrIjxg/view?utm_campaign=designshare&utm_source=sharebutton
+url_slides: "https://www.canva.com/design/DAEQB1uJGrY/0Noo7Xh_tKhhYFkfHrIjxg/view?utm_campaign=designshare&utm_source=sharebutton"
 # url_source: '#'
 # url_video: ''
 ---
