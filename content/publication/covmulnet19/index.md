@@ -15,6 +15,12 @@ authors:
   - Manlio De Domenico
 date: "2020-10-01T00:00:00Z"
 featured: true
+summary: We introduce in this study CovMulNet19, a comprehensive COVID-19 network containing all available known interactions involving SARS-CoV-2 proteins, interacting-human proteins, diseases and symptoms that are related to these human proteins, and compounds that can potentially target them.
+tags:
+- networks
+- covid-19
+- data
+- system biology
 publication: Network and systems medicine, Volume 3, 1, 130--141
 publication_types:
 - "2"
